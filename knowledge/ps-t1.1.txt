@@ -1,0 +1,28 @@
+PS T1.1   Why The Code Is Like This
+Build type: Applied AI
+Answer the question code cannot answer: why is it like this.
+The situation
+In every engineering team there is one person who knows why. Why the retry limit is three. Why that service was never migrated. Why a configuration flag nobody understands has to stay switched on. That knowledge lives in commit messages, closed pull requests, incident threads, design documents and inside one senior engineer's head. When that engineer leaves, the codebase stays and the reasoning walks out of the door.
+The problem
+A new developer can read code. They cannot read intent. Search gives them keywords, not decisions. Build a system that answers why is this the way it is, for a real codebase, with evidence attached to every answer.
+Why the current answers fail
+* Vector search over documents returns text that mentions the topic, not the decision that governs it
+* Documentation is written once and drifts, while commits and pull requests keep telling the truth
+* A decision that was reversed two years later still sits in the archive looking authoritative
+* Nobody records the link between an incident and the line of code that changed because of it
+What we expect you to build
+* Ingest a public repository's history: commits, pull request discussions, issues, and any design documents inside the repository
+* Construct a graph in which code entities such as files, modules, functions and configuration keys connect to decisions, people, incidents and to each other
+* Answer natural language questions with a chain of evidence: the decision, the discussion that produced it, the person to ask, and the date
+* Detect supersession, so that when a later decision quietly overrode an earlier one your system says so instead of quoting the dead one
+* Show a confidence signal, and refuse to invent an answer when the graph does not contain one
+Data and stack
+Pick any large public repository with a long and messy history. This is a graph problem end to end, because the value sits in the relationships and not in the text, so Neo4j AuraDB is the natural home and GraphRAG is the natural retrieval pattern. The Build Sprint flow on AuraDB, GraphRAG and Aura Agents maps almost directly onto this problem statement, which makes it a strong choice for teams attending a city Build Sprint.
+The layer beneath
+Entity resolution is the hard part. The same module carries four different names across five years, used by three people, described in two vocabularies. Temporal reasoning is the second hard part, because relevance decays and decisions expire. Teams that treat this as retrieval will build a search box. Teams that treat it as a graph of decisions moving through time will build a product.
+What the judges will reward
+* A question we can ask your demonstration that the project documentation could not answer
+* Honest behaviour when the answer is not in the graph
+* Evidence that the graph structure, and not the model, is doing the work
+Where this goes after hackFront
+Developer tooling with a buyer who is easy to find. Engineering leaders feel this during attrition and during handover, and both are permanent conditions in Indian engineering teams. The commercial wedge is time to first meaningful commit for a new engineer, which is a number engineering managers already track and already resent.

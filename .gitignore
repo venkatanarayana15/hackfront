@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+**/node_modules/
+
+# build copies / clones
+.repos/
+.zwork/
+.playwright-mcp/
+archive/
+
+# local artifacts
+artifacts/
+*.log
+src/web/vite.log
+.DS_Store
+Thumbs.db
+
+# editor
+.idea/
+.vscode/
+
+# local qa / staging
+.pw/
+.package/
+

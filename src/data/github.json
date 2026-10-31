@@ -1,0 +1,514 @@
+{
+ "pulls": {
+  "5672": {
+   "number": 5672,
+   "title": "[v4] Deprecate `res.clearCookie` accepting `options.maxAge` and `options.expires`",
+   "url": "https://github.com/expressjs/express/pull/5672",
+   "state": "merged",
+   "author": "jonchurch",
+   "createdAt": "2024-05-18T17:45:34Z",
+   "mergedAt": "2024-06-07T23:48:48Z",
+   "body": "closes https://github.com/expressjs/express/issues/5640\n\nAdds a deprecation notice when users pass a truthy value in `options` for `maxAge` or `expires` when calling `res.clearCookie(name, options)`.\n\nexample:\n> res.clearCookie: Passing \"options.maxAge\" is deprecated and should be removed. Starting with the next major release of Express, this option will be ignored, as res.clearCookie will automatically set cookies to expire immediately. Please update your code to omit this option.\n\nRelated #4852",
+   "commits": [
+    "f42b160b"
+   ],
+   "comments": []
+  },
+  "5792": {
+   "number": 5792,
+   "title": "Ignore `expires` and `maxAge` in `res.clearCookie()`",
+   "url": "https://github.com/expressjs/express/pull/5792",
+   "state": "merged",
+   "author": "jonchurch",
+   "createdAt": "2024-07-27T23:28:40Z",
+   "mergedAt": "2024-08-02T20:26:45Z",
+   "body": "Opened a new PR for this, supersedes https://github.com/expressjs/express/pull/4852\n\ncloses https://github.com/expressjs/express/issues/4851\n\nThe PR overrides any expires value set, and explicitly deletes maxAge from the options object.\n\nThe reason this is needed is that `res.cookie()` will set a relative `expires` value if it sees a `maxAge` value in the options.\n\nclearCookie is meant to delete a cookie, but that deletion can be thwarted if you pass a `maxAge` value, by setting an `expires` into the future relative to the `maxAge`",
+   "commits": [
+    "82fc12a4"
+   ],
+   "comments": [
+    {
+     "id": "2254282844",
+     "author": "jonchurch",
+     "date": "2024-07-27T23:38:11Z",
+     "body": "eslint is choking on the spread syntax",
+     "url": "https://github.com/expressjs/express/pull/5792#issuecomment-2254282844"
+    },
+    {
+     "id": "2254715981",
+     "author": "jonchurch",
+     "date": "2024-07-29T00:06:19Z",
+     "body": "It's a lack of `ecmaVersion` in the `.eslintrc.yml`\n\nFor spread, we'd need `ecmaVersion: 2015`\n\nFor v5 though, with support targetting >= Node 18, we'd want `ecmaVersion: 2022`",
+     "url": "https://github.com/expressjs/express/pull/5792#issuecomment-2254715981"
+    },
+    {
+     "id": "2256399428",
+     "author": "wesleytodd",
+     "date": "2024-07-29T16:36:09Z",
+     "body": "I was thinking after we land 5 we should work out moving to `neostandard` (or `standard` as it seems the fork could get resolved). I wonder if maybe it is just landing this without the lint offending things and just move forward?",
+     "url": "https://github.com/expressjs/express/pull/5792#issuecomment-2256399428"
+    },
+    {
+     "id": "2261377035",
+     "author": "jonchurch",
+     "date": "2024-07-31T20:17:15Z",
+     "body": "That's where Im at rn too, will update this to not break lint",
+     "url": "https://github.com/expressjs/express/pull/5792#issuecomment-2261377035"
+    },
+    {
+     "id": "2264034877",
+     "author": "jonchurch",
+     "date": "2024-08-01T21:25:51Z",
+     "body": "updated the PR to use `Object.assign` so we don't have to update the linting rn",
+     "url": "https://github.com/expressjs/express/pull/5792#issuecomment-2264034877"
+    },
+    {
+     "id": "2265771311",
+     "author": "wesleytodd",
+     "date": "2024-08-02T16:40:54Z",
+     "body": "I am unsure why 22 is blocking this and don't have time to dig in, but since there is both engines and new CI for 5.0 I wonder if we can just ignore this for now and merge?",
+     "url": "https://github.com/expressjs/express/pull/5792#issuecomment-2265771311"
+    },
+    {
+     "id": "2265956040",
+     "author": "jonchurch",
+     "date": "2024-08-02T18:49:42Z",
+     "body": "@wesleytodd it's misocnfiguration weirdness with ci\n\n5.0 branch protection requires the node 22 job from master's CI to pass\n~~But master's CI doesn't trigger for PRs to 5.0 (that workflow triggers on `5.x, 4.x, master`) after my updates we landed a few weeks ago.~~\n\n~~5.0 has it's own version of CI which is outdated and doesn't care about branches.~~ 5.0 branche's CI are the status jobs running here. [That version of CI doesn't include 22 in it's matrix](https://github.com/expressjs/express/blob/160b91cbf79b595712b694c3513c347551d17fbe/.github/workflows/ci.yml#L32), but the job that is pending but required is the [master CI](https://github.com/expressjs/express/blob/2177f67f5439494f7a29a8d04f744cc20fb9f201/.github/workflows/ci.yml#L67)",
+     "url": "https://github.com/expressjs/express/pull/5792#issuecomment-2265956040"
+    },
+    {
+     "id": "2266063699",
+     "author": "ctcpip",
+     "date": "2024-08-02T20:05:25Z",
+     "body": "it's not really a lint failure per se -- it's a parsing error, which means we can't even add an `eslint-disable-line` directive\n\nthe question about whether and what linter and rules to use is a different matter than language support, and we should not arbitrarily subject our selves to a syntactical penitentiary.  we are going to run into this all the time.  and here, it's in a critical path and where we take a perf hit by using object assign",
+     "url": "https://github.com/expressjs/express/pull/5792#issuecomment-2266063699"
+    },
+    {
+     "id": "2266098063",
+     "author": "wesleytodd",
+     "date": "2024-08-02T20:24:24Z",
+     "body": "Sounds to me with both of these comments that these are entirely unrelated issues to this PR so we could move forward with just merging and dealing with fixing CI in the 5.0 branch in one of the PRs specifically already working on that?",
+     "url": "https://github.com/expressjs/express/pull/5792#issuecomment-2266098063"
+    },
+    {
+     "id": "2266172071",
+     "author": "ctcpip",
+     "date": "2024-08-02T21:35:22Z",
+     "body": "@wesleytodd there's a bit of a circular dependency with the merge PR/branch needing the 5.0 changes due to both merge conflicts and test failure reconciliation, but @jonchurch and I just spent some time getting things cleaned up.  at this point the [merge branch/PR](https://github.com/expressjs/express/pull/5785) is looking good and all we are waiting for is the next release of v4, then to do one last sync and then merge to 5.0.  (we could also merge to 5.0 sooner than that, but the typical process had been to merge only after a release).  either way wfm",
+     "url": "https://github.com/expressjs/express/pull/5792#issuecomment-2266172071"
+    }
+   ]
+  },
+  "6073": {
+   "number": 6073,
+   "title": "response: add support for ETag option in res.sendFile",
+   "url": "https://github.com/expressjs/express/pull/6073",
+   "state": "merged",
+   "author": "juanarbol",
+   "createdAt": "2024-10-18T16:40:48Z",
+   "mergedAt": "2025-02-13T19:39:31Z",
+   "body": "This patch introduces the ability to control the ETag generation through the `res.sendFile` function. Specifically, the ETag option is wired to the application's configuration, allowing it to be enabled or disabled based on the app's settings.\n\nFixes: https://github.com/expressjs/express/issues/2294",
+   "commits": [
+    "327af123"
+   ],
+   "comments": [
+    {
+     "id": "2423078589",
+     "author": "UlisesGascon",
+     "date": "2024-10-18T19:08:53Z",
+     "body": "Can we make a test that ensure the that the Etag option is added by deafult? This will help us to document this change and to avoid regressions in the future.\n\nCurrently we don't include etag, so we should consider this as a minor or a major change?",
+     "url": "https://github.com/expressjs/express/pull/6073#issuecomment-2423078589"
+    },
+    {
+     "id": "2424106287",
+     "author": "juanarbol",
+     "date": "2024-10-19T17:47:52Z",
+     "body": "> Can we make a test that ensure the that the Etag option is added by deafult? This will help us to document this change and to avoid regressions in the future.\n>\n\nEtag is included by default. In the upper tests, you'll see that validation. See https://github.com/expressjs/express/blob/a46cfdc37f5e422db7ce6f12d321eb79694c1e9b/test/res.sendFile.js#L65\n\n> Currently we don't include etag, so we should consider this as a minor or a major change?\n\nWe do, for sendFIle, this patch will make express aware that even on sendFile, it should not ignore the Etag disabled.",
+     "url": "https://github.com/expressjs/express/pull/6073#issuecomment-2424106287"
+    }
+   ]
+  }
+ },
+ "issues": {
+  "941": {
+   "number": 941,
+   "title": "Remove 'app' argument to creating a new router",
+   "url": "https://github.com/expressjs/express/issues/941",
+   "state": "closed",
+   "author": "defunctzombie",
+   "createdAt": "2011-12-27T20:55:15Z",
+   "body": "If the app is not required for Router creation, then users can create disjoint routes and use them at different times in the middleware chain. It could also aid in more dynamic route creation disjoint from knowing the app.\n\nCurrently the 'app' parameter is used only to detect strict and case sensitive routes which could instead be arguments to the router creation.",
+   "comments": [
+    {
+     "id": "3285719",
+     "author": "defunctzombie",
+     "date": "2011-12-27T21:48:32Z",
+     "body": "See e1bbdc2bfc2df24f04cfdbdfa13a46788d5ea40c for the general idea. The reason behind this is that I like to setup a certain set of routes to happen before general middleware like session, cookie, etc. This allows me to group those types of routes into something easily exportable from files/modules to be included in the main 'app'",
+     "url": "https://github.com/expressjs/express/issues/941#issuecomment-3285719"
+    },
+    {
+     "id": "3285842",
+     "author": "tj",
+     "date": "2011-12-27T22:03:42Z",
+     "body": "you can still do stuff like `app.all('*', middleware)`, but yeah generally I agree. It's very convenient the way it is and the only downside to having several routers is that settings and the other app prototype methods would not be available. This almost gets back to subapps acting as additional routers, there's no additional overhead in doing this and settings are inherited",
+     "url": "https://github.com/expressjs/express/issues/941#issuecomment-3285842"
+    },
+    {
+     "id": "3285947",
+     "author": "defunctzombie",
+     "date": "2011-12-27T22:14:05Z",
+     "body": "I would still keep the app.\\* methods. Yea, while the app settings might not be available won't they still be passed with the req object? That could be a good way to just pass them along and keep the Router independent of the app. Let me know if you want a pull request against 'master' with the above changes.",
+     "url": "https://github.com/expressjs/express/issues/941#issuecomment-3285947"
+    },
+    {
+     "id": "3286032",
+     "author": "tj",
+     "date": "2011-12-27T22:23:19Z",
+     "body": "well it's not uncommon at all to use the settings outside of the request/response cycle. I think the thing to do for 4x would be to consider remove the configuration system all together so we dont have this issue, though call, we'll have to play around with it and see what feels correct.",
+     "url": "https://github.com/expressjs/express/issues/941#issuecomment-3286032"
+    },
+    {
+     "id": "3287380",
+     "author": "defunctzombie",
+     "date": "2011-12-28T01:35:25Z",
+     "body": "The router changes seemed easy enough and at least was a step toward unwinding some of the dependencies between components.",
+     "url": "https://github.com/expressjs/express/issues/941#issuecomment-3287380"
+    },
+    {
+     "id": "3288467",
+     "author": "tj",
+     "date": "2011-12-28T06:14:03Z",
+     "body": "yeah it looks fine to me other than the snake-casing. I try to avoid getters / setters except when people expect them (unfortunately) for certain APIs but that's not a big deal I can tweak that",
+     "url": "https://github.com/expressjs/express/issues/941#issuecomment-3288467"
+    },
+    {
+     "id": "3288495",
+     "author": "tj",
+     "date": "2011-12-28T06:19:41Z",
+     "body": "also related to #921",
+     "url": "https://github.com/expressjs/express/issues/941#issuecomment-3288495"
+    }
+   ]
+  },
+  "2215": {
+   "number": 2215,
+   "title": "remove/opt-out of `qs` module",
+   "url": "https://github.com/expressjs/express/issues/2215",
+   "state": "closed",
+   "author": "jonathanong",
+   "createdAt": "2014-07-07T00:29:38Z",
+   "body": "looking through `qs`'s issues, it seems like there isn't even a consensus on how nested query string parsing should be. we should either remove it, opt out of it, or create semantics everyone could agree on and redo the `qs` module",
+   "comments": [
+    {
+     "id": "48132141",
+     "author": "dougwilson",
+     "date": "2014-07-07T00:31:52Z",
+     "body": "This is about the `req.query`, is that right?",
+     "url": "https://github.com/expressjs/express/issues/2215#issuecomment-48132141"
+    },
+    {
+     "id": "48132316",
+     "author": "jonathanong",
+     "date": "2014-07-07T00:34:26Z",
+     "body": "yeah",
+     "url": "https://github.com/expressjs/express/issues/2215#issuecomment-48132316"
+    },
+    {
+     "id": "48132386",
+     "author": "jonathanong",
+     "date": "2014-07-07T00:35:41Z",
+     "body": "maybe do an option like `app.querystring = require('qs')` or something",
+     "url": "https://github.com/expressjs/express/issues/2215#issuecomment-48132386"
+    },
+    {
+     "id": "48132403",
+     "author": "dougwilson",
+     "date": "2014-07-07T00:35:55Z",
+     "body": "OK, just checking :) `req.query` should really be a getter anyway, instead of some weird automatic middleware. Also, `querystring` module in core sucks because it's also unpredictable: sometimes a value is a string and sometimes it's an array.",
+     "url": "https://github.com/expressjs/express/issues/2215#issuecomment-48132403"
+    },
+    {
+     "id": "48132505",
+     "author": "jonathanong",
+     "date": "2014-07-07T00:37:30Z",
+     "body": "really? i thought it was always a string. i thought `qs` was giving me all the different ttypes",
+     "url": "https://github.com/expressjs/express/issues/2215#issuecomment-48132505"
+    },
+    {
+     "id": "48132581",
+     "author": "dougwilson",
+     "date": "2014-07-07T00:39:47Z",
+     "body": "no, even core is broken. `?foo=bar&foo=baz` will give `['bar', 'baz']` in code. This is fine, but you still have to test if it is an array or not. A proper interface to query values would be `req.query.get('foo')` which would give first occurrence and `req.query.all('foo')` will give you an array of all (and if only a single value, just a one element array). This would thus guarantee the type you're getting.",
+     "url": "https://github.com/expressjs/express/issues/2215#issuecomment-48132581"
+    },
+    {
+     "id": "48132588",
+     "author": "dougwilson",
+     "date": "2014-07-07T00:40:03Z",
+     "body": "It's also what like all the other languages like to do.",
+     "url": "https://github.com/expressjs/express/issues/2215#issuecomment-48132588"
+    },
+    {
+     "id": "48133036",
+     "author": "jonathanong",
+     "date": "2014-07-07T00:58:18Z",
+     "body": "ohhh. i guess i'd be down for a module like that, except it should have a convenience method to return an object. the object should probably return only strings as default and optionally do the nested/array/type inferencing magic",
+     "url": "https://github.com/expressjs/express/issues/2215#issuecomment-48133036"
+    },
+    {
+     "id": "48133203",
+     "author": "dougwilson",
+     "date": "2014-07-07T01:04:07Z",
+     "body": "Right. I can see the convenience method taking an option to return all values as strings only (so first value when there are multiple), all as arrays, or the mixed format. Then people will know if they asked for the mixed, they'll know what kind of checking they need to be doing or whatever.",
+     "url": "https://github.com/expressjs/express/issues/2215#issuecomment-48133203"
+    },
+    {
+     "id": "48135987",
+     "author": "defunctzombie",
+     "date": "2014-07-07T02:27:13Z",
+     "body": "We should be providing a query string module but optionally allowing the user to bring their own (maybe via setting when creating the app or something)\n\nWe can do what @jonathanong suggested or optionally think about\n\n``` js\nvar app = express({ qs: my_qs });\n```\n\nI know we haven't passed options to express like this before but maybe it could work.",
+     "url": "https://github.com/expressjs/express/issues/2215#issuecomment-48135987"
+    },
+    {
+     "id": "48136239",
+     "author": "dougwilson",
+     "date": "2014-07-07T02:35:01Z",
+     "body": "Right. I see many different things going on here:\n1. `req.query` should be a getter instead of added by middleware. This would be nice in that you only have to parse the query if you want it, instead of always without a choice.\n2. We need to have some better default parsing, probably something where users don't get into trouble with just slapping crap around (because they didn't realize a value could be an array, object, or what-have-you).\n3. Let people override this, especially important if it becomes a getter.\n\nWe have setting stuff already with `app.set('trust proxy', val)`, `app.set('view engine',  val)`, etc. I think all the settings should be in the same location, so we can either add the `qs` parser there, or move all that stuff into the `express` constructor (but not have them mixed where some are one way and some are another way).",
+     "url": "https://github.com/expressjs/express/issues/2215#issuecomment-48136239"
+    },
+    {
+     "id": "48862090",
+     "author": "dougwilson",
+     "date": "2014-07-14T03:17:35Z",
+     "body": "There is now a commit on the 4.7 branch that implements this. A user can opt-out of parsing with `app.disable('query parser')`, change it to not use `qs` with `app.set('query parser', 'simple')`, or provide their very own whatever they want parser with `app.set('query parser', fn)`.",
+     "url": "https://github.com/expressjs/express/issues/2215#issuecomment-48862090"
+    },
+    {
+     "id": "122987874",
+     "author": "hacksparrow",
+     "date": "2015-07-20T18:55:56Z",
+     "body": "Updated the 5.x doc accordingly.",
+     "url": "https://github.com/expressjs/express/issues/2215#issuecomment-122987874"
+    }
+   ]
+  },
+  "3361": {
+   "number": 3361,
+   "title": "Consider disabling extended query string parsing by default",
+   "url": "https://github.com/expressjs/express/issues/3361",
+   "state": "closed",
+   "author": "randomdross",
+   "createdAt": "2017-07-11T05:51:42Z",
+   "body": "I created a simple browser-based XSS filter test app here:\nhttp://xss.untrusted.com/xss?id=aaa&id=bbb\nThis is page is simple enough that pretty much any filter bypass bug present here would be legitimate.  That is, the identified bypass condition would have to be in-scope as an issue for the filter to defend against.\n\nMasato Kinugawa was able to bypass the IE / Edge XSS filter using the following trick:\nhttp://xss.untrusted.com/xss?id[0]=%3Cscript/&id[1]=/src=//html5sec.org/test.js%3E%3C/script%3E\nThis relies on the extended query string parsing that is enabled by default in express.\n\nI was able to fix my test app by manually disabling the extended query string parsing:\napp.set('query parser', 'simple');\n\nWhile it's certainly not the responsibility of express to make the IE / Edge XSS Filter's job any easier, disabling the extended query parsing by default would be one way to solve this issue for the filter.\n\nAdam Baldwin alerted me to this issue and FWIW he is also in favor of changing the default query parser to 'simple': https://twitter.com/adam_baldwin/status/884633562292428800\n\nDisclosure: Though I'm currently employed by Google, in a previous life I worked at Microsoft developing the IE / Edge XSS Filter.",
+   "comments": [
+    {
+     "id": "314331725",
+     "author": "dougwilson",
+     "date": "2017-07-11T05:55:48Z",
+     "body": "Yes, the plan is to disable by default in Express 5.0. You can view the 5.0 plan here: https://github.com/expressjs/express/pull/2237\n\n> Make query parser option default to 'simple'\n\nI hope this helps! I even updated the plan to reference this issues in the check list for that entry, since there wasn't a specific issue before that I recall, just discussions.",
+     "url": "https://github.com/expressjs/express/issues/3361#issuecomment-314331725"
+    },
+    {
+     "id": "314333597",
+     "author": "randomdross",
+     "date": "2017-07-11T05:58:36Z",
+     "body": "Oh that's awesome!  Thank you Doug!",
+     "url": "https://github.com/expressjs/express/issues/3361#issuecomment-314333597"
+    },
+    {
+     "id": "314334668",
+     "author": "dougwilson",
+     "date": "2017-07-11T06:00:11Z",
+     "body": "And the `body-parser` module has the same thing, which is also being defaulted off in it's 2.0 release.",
+     "url": "https://github.com/expressjs/express/issues/3361#issuecomment-314334668"
+    },
+    {
+     "id": "997146032",
+     "author": "dougwilson",
+     "date": "2021-12-18T05:10:51Z",
+     "body": "Everything has now been updated to default to the simple parser in the current 5.0 branch 👍",
+     "url": "https://github.com/expressjs/express/issues/3361#issuecomment-997146032"
+    }
+   ]
+  },
+  "3621": {
+   "number": 3621,
+   "title": "Change default setting of query parser from extended to simple",
+   "url": "https://github.com/expressjs/express/pull/3621",
+   "state": "closed",
+   "author": "czaarek99",
+   "createdAt": "2018-04-15T08:31:11Z",
+   "body": "Implemented the change discussed in #3361",
+   "comments": [
+    {
+     "id": "381428520",
+     "author": "wesleytodd",
+     "date": "2018-04-15T18:44:35Z",
+     "body": "Thanks @czaarek99! Change looks good, can you just squash these into one commit?\n\n@dougwilson Can we look at getting these query parser changes merged before the next 5.x beta (this and #3259)?  I think we should focus on getting as many of these breaking changes merged so we can start educating users on the big changes they should be ready for.",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-381428520"
+    },
+    {
+     "id": "381429201",
+     "author": "dougwilson",
+     "date": "2018-04-15T18:54:14Z",
+     "body": "Shouldn't be deprecate it in 4.x first before suddenly changing the behavior in 5? All the other changes have gone through a deprecation cycle so I think this should as well.",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-381429201"
+    },
+    {
+     "id": "381429699",
+     "author": "wesleytodd",
+     "date": "2018-04-15T19:01:05Z",
+     "body": "In a perfect world we would introduce a deprecation in 5 then make the change in 6.  If we had a faster release cycle I would agree, but I think we need to improve the default security settings sooner than later.\n\nI am just worried that if we start printing a deprecation warning in a `4.x` branch because it will just cause a ton of churn like the `new Buffer` or the `React.propTypes` deprecation warnings did.  But if you think this is worth it than I wouldn't argue strongly against it.",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-381429699"
+    },
+    {
+     "id": "381429909",
+     "author": "dougwilson",
+     "date": "2018-04-15T19:03:33Z",
+     "body": "I think a change that is as subtle as this needs a depreciation cycle prior to outright change. If something is being changed / removed in 5 and it is possible to deprecate in 4 it should be deprecated first in 4 and then the change in the 5 branch would be the change plus removing deprecation.",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-381429909"
+    },
+    {
+     "id": "381430225",
+     "author": "dougwilson",
+     "date": "2018-04-15T19:07:54Z",
+     "body": "The body-parser module did this and yes there was some churn at the beginning but no one thinks about it any longer. Besides the fact that deprecations are warnings and can simply be turned off if someone wants.",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-381430225"
+    },
+    {
+     "id": "381431924",
+     "author": "czaarek99",
+     "date": "2018-04-15T19:33:01Z",
+     "body": "@dougwilson When would printing this deprecation message be suitable? On startup?",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-381431924"
+    },
+    {
+     "id": "381437197",
+     "author": "dougwilson",
+     "date": "2018-04-15T20:53:27Z",
+     "body": "It should probably act similar to how the `express.urlencoded` works for deprecation on the `extended` option.",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-381437197"
+    },
+    {
+     "id": "381643585",
+     "author": "czaarek99",
+     "date": "2018-04-16T15:22:31Z",
+     "body": "@dougwilson But isn't that different though? In the case of `express.urlencoded` you have to call a function on which you'd print the deprecation. In this case we'd have to print the warning if they don't specifically call `app.set('query parser', 'extended')`, but when would that be?\n\nShouldn't we print the error if we detect an incoming extended object and we haven't received an `app.set('query parser', 'extended')` before that?",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-381643585"
+    },
+    {
+     "id": "571270792",
+     "author": "mattsre",
+     "date": "2020-01-06T19:11:56Z",
+     "body": "@wesleytodd This closes #3361. Given your timeline for releasing `5.0` end-of-month is it still worth adding a deprecation message in `4.x`?",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-571270792"
+    },
+    {
+     "id": "571445547",
+     "author": "dougwilson",
+     "date": "2020-01-07T05:48:30Z",
+     "body": "> but when would that be?\n\nAt the time the `query` middleware is created.",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-571445547"
+    },
+    {
+     "id": "595785463",
+     "author": "gireeshpunathil",
+     "date": "2020-03-06T14:13:31Z",
+     "body": "I would like a reassessment of the proposed changes in this PR - specifically, on the deprecation in `4.x` part - is this still valid, given we are in the brink of 5?\n\n@czaarek99 - are you in position to progress on this PR, collaborating with the community reviewers? this is tagged as an important item that needs to be included in 5.\n\nIf yes, let me know if you need any help \nIf not, no worries, I am willing to take this up and move forward",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-595785463"
+    },
+    {
+     "id": "595794644",
+     "author": "dougwilson",
+     "date": "2020-03-06T14:34:27Z",
+     "body": "> I would like a reassessment of the proposed changes in this PR - specifically, on the deprecation in 4.x part - is this still valid, given we are in the brink of 5?\n\nSince 4.x is still going to exist for quite some time once 5 is released it is still valid. If it doesn't get deprecated in 4 before releasing 5, then it would need to be deprecated in 5 and then released in 6. This is trying to follow the Node.js model, which we have been doing so far for anything that can possibly be marked as deprecated. \n\nIf it is not possible to add a deprecation to 4, then we can reevaluate deprecation, though I don't think that is what you are saying here.",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-595794644"
+    },
+    {
+     "id": "595798001",
+     "author": "gireeshpunathil",
+     "date": "2020-03-06T14:42:01Z",
+     "body": "@dougwilson - so (if we want to deprecate in 4 before 5 is out), we are looking for an imminent 4.x release, right? is it (deprecation) going to be a minor, or a patch?",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-595798001"
+    },
+    {
+     "id": "595806435",
+     "author": "dougwilson",
+     "date": "2020-03-06T15:00:21Z",
+     "body": "Yes, there is already an imminent 4 release that will be before this weekend's 5 release: https://github.com/expressjs/discussions/issues/100#issuecomment-590058884",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-595806435"
+    },
+    {
+     "id": "601543429",
+     "author": "gireeshpunathil",
+     "date": "2020-03-20T05:26:30Z",
+     "body": "ping @dougwilson - can you merge this and https://github.com/expressjs/express/pull/4208 to move forward, as discussed? thanks!",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-601543429"
+    },
+    {
+     "id": "601544019",
+     "author": "dougwilson",
+     "date": "2020-03-20T05:30:04Z",
+     "body": "Hi @gireeshpunathil sorry, the #4208 needs to be merged first. I just commented on there in that there still seems to be an unresolved issue I uncovered when I went to do the merging the other night, if you can take a look.",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-601544019"
+    },
+    {
+     "id": "603248546",
+     "author": "dougwilson",
+     "date": "2020-03-24T13:47:12Z",
+     "body": "Visibility for @gireeshpunathil : in the TC meeting regarding this, it was pointed out that express.urlencoded needs the same change so they are in line with each other. I have been working on that one myself so both changes can be landed into the 5.0 branch.\n\nThe main blocker here remains the landing of the deprecation PR.",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-603248546"
+    },
+    {
+     "id": "606601240",
+     "author": "czaarek99",
+     "date": "2020-03-31T12:39:45Z",
+     "body": "> I would like a reassessment of the proposed changes in this PR - specifically, on the deprecation in `4.x` part - is this still valid, given we are in the brink of 5?\n> \n> @czaarek99 - are you in position to progress on this PR, collaborating with the community reviewers? this is tagged as an important item that needs to be included in 5.\n> \n> If yes, let me know if you need any help\n> If not, no worries, I am willing to take this up and move forward\n\nI opened this pull request about two years ago just to learn a little bit about express and how it works. You can do whatever you guys think is right but at this point I don't even remember why this PR was opened and why it was so hard getting it merged. You guys can go ahead and figure it out without me, no worries :smiley:",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-606601240"
+    },
+    {
+     "id": "606613376",
+     "author": "gireeshpunathil",
+     "date": "2020-03-31T13:04:29Z",
+     "body": "@czaarek99 - I understand your frustration. I have added this to the upcoming TC meeting to reflect and figure out what went wrong / what could have been done better.",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-606613376"
+    },
+    {
+     "id": "616342400",
+     "author": "czaarek99",
+     "date": "2020-04-20T06:38:39Z",
+     "body": "@gireeshpunathil Did we get anywhere? :thought_balloon:",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-616342400"
+    },
+    {
+     "id": "616344301",
+     "author": "dougwilson",
+     "date": "2020-04-20T06:43:32Z",
+     "body": "Hi @czaarek99 ; I we have a PR to add a deprecation, and I had my teams test it out last week while I was away while I was awaiting the feedback just recently providing around docs for the 4.18 release -- I am writing up a response in that PR about the issue it has and my reasoning as to why I don't think we should actually end up deprecating it in the 4.x release, which would mean your PR here would just land directly on 5.0 prior to 4.18 completing, as it would no longer be dependent.\n\nUltimately, I which we did actually try to do the deprecation back in 2018 when the discussion first occurred instead of now, but what is past is past. We are working hard to go forward with where we are now.",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-616344301"
+    },
+    {
+     "id": "616427578",
+     "author": "czaarek99",
+     "date": "2020-04-20T09:30:10Z",
+     "body": "> Hi @czaarek99 ; I we have a PR to add a deprecation, and I had my teams test it out last week while I was away while I was awaiting the feedback just recently providing around docs for the 4.18 release -- I am writing up a response in that PR about the issue it has and my reasoning as to why I don't think we should actually end up deprecating it in the 4.x release, which would mean your PR here would just land directly on 5.0 prior to 4.18 completing, as it would no longer be dependent.\n> \n> Ultimately, I which we did actually try to do the deprecation back in 2018 when the discussion first occurred instead of now, but what is past is past. We are working hard to go forward with where we are now.\n\nMakes sense. Thanks for the update :)",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-616427578"
+    },
+    {
+     "id": "625695225",
+     "author": "czaarek99",
+     "date": "2020-05-08T08:04:53Z",
+     "body": "Since this is going into 5.x wouldn't it be preferable to merge it into that branch ASAP and get it out in the alpha npm releases to be able to watch out for potential bugs this might lead to?",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-625695225"
+    },
+    {
+     "id": "625696200",
+     "author": "dougwilson",
+     "date": "2020-05-08T08:07:27Z",
+     "body": "Yes, this is landing in the very next 5.0 release we are making.",
+     "url": "https://github.com/expressjs/express/pull/3621#issuecomment-625696200"
+    }
+   ]
+  }
+ }
+}

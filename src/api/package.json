@@ -1,0 +1,20 @@
+{
+  "name": "codecompass-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CodeCompass — graph-native reasoning over a real git history (hackFront India T1.1)",
+  "main": "server.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node test.js",
+    "ingest": "node ingest.js --repo ../../.repos/express --out ../data/express.graph.json --enrich ../data/github.json",
+    "fetch:github": "node ../../tools/fetch_github.js",
+    "export:cypher": "node ../../tools/export_cypher.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}

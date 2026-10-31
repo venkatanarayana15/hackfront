@@ -1,0 +1,432 @@
+﻿hackFront India
+Edition 01 Problem Statements
+hackFront India, a nationwide innovation league, an initiative of Where U Elevate.
+________________
+
+
+Theme T1   AI and Developer Tools
+Digital Innovation sector
+Every team in India is now shipping software with a model inside it. Almost none of them can explain why the system behaves the way it does, or prove that this week's version is better than last week's. The opportunity in this theme is not another assistant. It is the layer underneath: the tools that make software and the systems built on top of models understandable, testable and safe to change.
+PS T1.1   Why The Code Is Like This
+Build type: Applied AI
+Answer the question code cannot answer: why is it like this.
+The situation
+In every engineering team there is one person who knows why. Why the retry limit is three. Why that service was never migrated. Why a configuration flag nobody understands has to stay switched on. That knowledge lives in commit messages, closed pull requests, incident threads, design documents and inside one senior engineer's head. When that engineer leaves, the codebase stays and the reasoning walks out of the door.
+The problem
+A new developer can read code. They cannot read intent. Search gives them keywords, not decisions. Build a system that answers why is this the way it is, for a real codebase, with evidence attached to every answer.
+Why the current answers fail
+* Vector search over documents returns text that mentions the topic, not the decision that governs it
+* Documentation is written once and drifts, while commits and pull requests keep telling the truth
+* A decision that was reversed two years later still sits in the archive looking authoritative
+* Nobody records the link between an incident and the line of code that changed because of it
+What we expect you to build
+* Ingest a public repository's history: commits, pull request discussions, issues, and any design documents inside the repository
+* Construct a graph in which code entities such as files, modules, functions and configuration keys connect to decisions, people, incidents and to each other
+* Answer natural language questions with a chain of evidence: the decision, the discussion that produced it, the person to ask, and the date
+* Detect supersession, so that when a later decision quietly overrode an earlier one your system says so instead of quoting the dead one
+* Show a confidence signal, and refuse to invent an answer when the graph does not contain one
+Data and stack
+Pick any large public repository with a long and messy history. This is a graph problem end to end, because the value sits in the relationships and not in the text, so Neo4j AuraDB is the natural home and GraphRAG is the natural retrieval pattern. The Build Sprint flow on AuraDB, GraphRAG and Aura Agents maps almost directly onto this problem statement, which makes it a strong choice for teams attending a city Build Sprint.
+The layer beneath
+Entity resolution is the hard part. The same module carries four different names across five years, used by three people, described in two vocabularies. Temporal reasoning is the second hard part, because relevance decays and decisions expire. Teams that treat this as retrieval will build a search box. Teams that treat it as a graph of decisions moving through time will build a product.
+What the judges will reward
+* A question we can ask your demonstration that the project documentation could not answer
+* Honest behaviour when the answer is not in the graph
+* Evidence that the graph structure, and not the model, is doing the work
+Where this goes after hackFront
+Developer tooling with a buyer who is easy to find. Engineering leaders feel this during attrition and during handover, and both are permanent conditions in Indian engineering teams. The commercial wedge is time to first meaningful commit for a new engineer, which is a number engineering managers already track and already resent.
+PS T1.2   The Cheap Phone Test
+Build type: Measurement and data
+Built on a laptop, tested on a flagship, used on a device that costs eight thousand rupees.
+The situation
+An Indian product team builds on fast laptops, tests on a recent phone over office WiFi, and ships to users on entry level Android devices, on congested networks, with four hundred megabytes of free storage and a phone that thermally throttles after six minutes. The gap between those two worlds is where retention quietly dies, and the team never sees it because their own testing never enters it.
+The problem
+Build a harness that runs an application under real Indian conditions and reports what breaks, ranked by how many actual users would hit that condition.
+Why the current answers fail
+* Performance testing measures a page load on a good connection, which is the one case nobody needed to check
+* Network throttling profiles in browser tools simulate a steady slow connection, and real Indian connectivity is not steady, it is intermittent
+* Nobody tests low storage, thermal throttling, an aggressive battery saver, or a device that kills background processes to survive
+* Field failures come back as an unreproducible complaint, which is another way of saying nobody fixes them
+What we expect you to build
+* A condition matrix built from evidence rather than assumption: device tier, network behaviour including intermittency and packet loss, storage pressure, thermal state, memory pressure, and battery saver behaviour
+* Automated runs of the application under each condition, capturing what actually happened rather than a score
+* Detection of the failures that matter: a request with no timeout, a state lost on process death, an image that never loads, an action that silently does nothing, a screen that becomes unusable
+* Ranking by estimated user impact, using a defended assumption about the real distribution of conditions in India
+* A reproduction recipe for every finding, so a developer can hit the same failure on demand
+Data and stack
+Android emulators with constrained profiles, network shaping tools, and if you can get hold of two or three genuinely low end physical devices, use them, because emulators do not thermally throttle. This is instrumentation and measurement work. No model is required.
+The layer beneath
+Making the failure reproducible. An anecdote about the app being slow in a village changes nothing. A recipe that reproduces a specific broken state, every time, on a specified profile, is a bug report that gets fixed on Monday. Alongside that sits the honesty of your condition distribution, because the ranking is only as good as the assumption underneath it.
+What the judges will reward
+* A real failure found in a real application that its own team did not know about
+* Reproduction recipes that work on our machine, not only on yours
+* The impact ranking, with its assumptions defended
+Where this goes after hackFront
+Every consumer product team in India has this problem and most of them are solving it with luck. Quality tooling with an India specific condition model is something no global vendor is building, which is a small but genuinely defensible position.
+________________
+
+
+Theme T2   Cybersecurity
+Digital Innovation sector
+Security in India stopped being an IT problem on the day the law made it a board problem. Two things are now true at once. Attackers move through identity and relationships rather than through single machines. And regulators want evidence rather than intent. Both of those are data problems before they are security problems.
+PS T2.1   GraphOps: Graph analytics for proactive threat hunting and blast radius containment in security operations centers
+
+Overview
+This challenge asks you to design and build a graph analytics engine that helps a security operations center move from reacting to individual alerts toward actively hunting for threats. Your solution should model an organization's assets, identities, and network activity as a connected graph, then use that graph to predict how an attacker could move through the network, measure the impact of a compromised system in real time, and give analysts a clear picture of what is actually happening during an incident instead of a pile of disconnected alerts.
+Background
+Security operations centers today are overwhelmed by alert volume and lack context connecting one alert to the next. Most SIEM and SOAR platforms store events in relational tables and correlate them with rules, which works reasonably well for spotting a single suspicious event but struggles to show how separate events relate to each other.
+When an attacker compromises a low-privilege endpoint and starts moving laterally through a network, that behavior shows up as many separate, disconnected alerts. Analysts then spend hours manually reconstructing the attack chain from those alerts. Most SOCs also cannot answer a basic question during an active incident: if this specific system is compromised right now, what is the blast radius, and which critical assets sit on the direct path an attacker could take from here.
+Relational databases require multiple joins to trace a multi-hop relationship such as a user connecting to an IP address, which runs a process, which touches a file. A graph database represents that same chain as a direct path and can traverse it in milliseconds rather than running a chain of joins. This is the core reason this challenge is framed as a graph problem rather than a traditional data warehousing one.
+What your solution should do
+A strong submission does not need to cover every item below in full, but should show a working approach to at least the graph construction and one or two of the analytical capabilities.
+Build a knowledge graph from security telemetry: Ingest data such as a configuration management database, identity and access records, endpoint detection logs, and network flow data, and represent it as a graph where nodes are entities (users, IP addresses, assets, applications, vulnerabilities) and edges are interactions (logins, network connections, process launches).
+Model attack paths before they are used: Continuously map the possible paths from low-trust zones of the network to high-value assets, and surface the choke points, the small number of nodes or edges that, if secured, would cut off the most possible attack paths.
+Calculate blast radius in real time: When a compromise indicator fires on a node, calculate and display the one-hop, two-hop, and three-hop neighborhood around it, so an analyst can immediately see which systems are at direct risk.
+Detect anomalies using the graph's structure, not just static rules: Go beyond fixed rules by using the graph's own topology, for example flagging a user reaching a server through a path they have never used before, even if no single step in that path looks unusual on its own.
+Technical building blocks you may use
+These are starting points, not requirements. Use whichever of them fit the approach your team chooses.
+Shortest path algorithms (Dijkstra, A*): use this to find the fastest route an attacker could take from an entry point to a critical asset.
+Centrality measures (PageRank and similar): use this to identify which nodes in the graph would cause the most disruption if compromised.
+Community detection (Louvain and similar): use this to spot clusters of already-compromised assets that indicate active lateral movement.
+MITRE ATT&CK mapping: use this to tag graph edges with the tactic they represent, so the resulting path reads as a recognizable kill chain rather than a raw graph.
+What a good solution demonstrates
+Judges will be looking for evidence that your approach could plausibly reduce the time and effort a real security team spends investigating incidents, for example by showing:
+A visibly shorter path from raw alert to a clear, connected picture of what happened, compared to reading the alerts one at a time.
+ Fewer, higher-quality alerts: several low-fidelity signals merged into one connected incident narrative instead of staying separate.
+ A concrete, pre-incident example: a choke point or over-privileged access path your system finds before it is exploited, not only after.
+ A believable connection to zero-trust practice, for example comparing the graph of access that people actually use against the graph of access they are entitled to.
+Suggested tools and technologies
+Optional starting points. Teams are free to use different tools if they suit their approach better.
+Layer
+	Suggested options
+	Graph database
+	Neo4j, TigerGraph, or Apache AGE
+	Backend and data processing
+	Python, Apache Kafka for streaming telemetry, Apache Spark for batch processing
+	Machine learning
+	PyTorch Geometric for graph neural networks, scikit-learn for simpler models
+	Frontend and graph visualization
+	React, with D3.js or Cytoscape.js for interactive graph rendering
+	Infrastructure
+	Docker and Kubernetes, deployable on any major cloud provider
+	
+
+Suggested order of work
+This is a suggested sequence, not a fixed schedule. Scale it to however long the event actually runs, and skip ahead if your team already has a working data source lined up.
+* Define the graph model and get data flowing: Decide what a node and an edge represent, then get at least one real or realistic data source (sample logs, a mock CMDB export, or a public breach dataset) loading into the graph.
+* Implement one or two core analyses: Path finding, centrality, or community detection, applied to that graph, with output an analyst could actually read.
+* Add the blast radius view: Given one compromised node, show its one, two, and three hop neighborhood, ideally rendered visually.
+* Build the demo: A working, clickable or scriptable demonstration is worth more at judging time than a long slide deck describing what the system would eventually do.
+________________
+Theme T3   Telecom and Connectivity
+Digital Innovation sector
+A coverage map is a marketing asset. Connectivity is an experience. The distance between the two is where most of India lives. This theme asks for two things. Work that measures the truth, and work that keeps a message moving after the network has stopped.
+PS T3.1   The Coverage Truth Layer
+Build type: Measurement and data
+Full bars and nothing works. Measure that, at village level, and make it undeniable.
+The situation
+On paper the village is covered. In practice the phone shows full signal and a payment fails, a video call collapses, an examination form will not upload. Operators plan from their own models. Regulators receive reports from operators. The person standing in the field has a voice in neither.
+The problem
+Build a measurement system that produces an honest and independent picture of network quality at a fine geographic level, and that detects the specific failure of phantom coverage: strong signal, no usable service.
+Why the current answers fail
+* Speed test applications measure when a user chooses to test, which biases every dataset towards places where the network already works
+* Signal strength on its own is a poor predictor of whether anything actually functions
+* Coverage maps are modelled rather than measured, and are published by the party being measured
+* Crowdsourced data with no defence against manipulation becomes worthless the moment it starts to matter to somebody
+What we expect you to build
+* A lightweight Android client that samples signal strength, network type, throughput, latency and failure events such as failed call setup and failed data attach, in the background, with real battery discipline
+* Aggregation into a quality index at a small area level, with an explicit statement of how many samples support each area and how confident the estimate is
+* Detection of phantom coverage as a first class output rather than a footnote
+* A public facing view a district administrator or a journalist could read, and an operator facing view that localises the likely fault
+* Defences against manipulation: device fingerprinting, plausibility checks on movement and readings, and a stated position on what happens to a suspicious contributor
+Data and stack
+This is a field data problem. Collect real samples on your own campus and around your own city, however small the set. Two hundred honest measured points are worth more here than a simulation of a million. Battery efficiency is part of the grade, not a nicety.
+The layer beneath
+Sparse spatial inference. You will never have samples everywhere, so the system has to say something responsible about the places between the samples and be honest about how uncertain it is. Sitting next to that is privacy, because you are collecting location traces from real people. How you aggregate, blur and retain that is not a footnote in your report. It is the design.
+What the judges will reward
+* Real collected data rather than simulated data
+* The uncertainty statement, taken seriously
+* The manipulation defence, thought through rather than mentioned in passing
+Where this goes after hackFront
+Regulators, state governments running digital access programmes, and operators who want independent verification all buy this. There is also a public accountability version of the same product that earns attention long before it earns revenue, which is a perfectly reasonable way to begin.
+PS T3.2   Running A Village Internet Business
+Build type: Software product
+Thousands of small local operators run on paper, and lose money to problems they cannot see.
+The situation
+Across India, small local operators run wireless networks serving a few hundred homes each. The business runs on a paper register, a personal phone number for support, and a rooftop antenna that somebody adjusted last monsoon. When the link degrades, the operator cannot tell which hop is failing, so they climb everything. When a customer does not pay, they find out at the end of the month. The business is real, the margins are thin, and there is no software built for it.
+The problem
+Build the operations software for a micro internet service provider: know which link is failing, know who is connected, and get paid without chasing.
+Why the current answers fail
+* Carrier grade management software is priced and designed for organisations with a network operations centre
+* Consumer routers report their own status and nothing about the chain of links behind them
+* Billing is a paper register and a personal payment handle, which means unbilled usage and awkward conversations
+* Outage diagnosis is somebody climbing a tower to look at a light
+What we expect you to build
+* Link monitoring across a chain of wireless hops, identifying which hop is degrading rather than reporting that the internet is slow
+* Subscriber management: who is connected, on what plan, since when, and what they actually used
+* Outage detection with a probable cause and an estimated affected list, so the operator can message people before they call
+* A payment and reminder flow that works for customers who pay in cash, over a payment handle, or late
+* An interface usable by an operator on a phone, in their language, standing on a roof
+Data and stack
+Build against real or simulated equipment of the kind actually used: inexpensive wireless bridges and consumer grade routers. Talk to at least one real operator before you write a line of code, and tell us what they said. No model required.
+The layer beneath
+Fault localisation along a chain. When five hops sit between the upstream connection and the customer, and every hop reports only its own view, working out which one is the problem from cheap measurements is a real inference task. Getting it right turns a day of climbing into a fifteen minute fix, and that saving is the entire product.
+What the judges will reward
+* Correct identification of a degraded hop that you introduce deliberately
+* Evidence you spoke to a real operator and changed something because of it
+* An interface a person could actually use standing on a roof
+Where this goes after hackFront
+There are thousands of these operators and each one is a small business with real revenue and no software. This is an unglamorous market that global vendors ignore and that compounds through word of mouth in exactly the way early stage investors like.
+________________
+
+
+Theme T4   Fintech
+Digital Innovation sector
+India built the rails. What sits on top of them is still surprisingly thin. This theme is not about another payment application. It is about the intelligence layer the rails made possible and nobody has built well. Knowing what a transaction really costs a person, and seeing the pattern a single transaction can never reveal.
+PS T4.1   The Auto Debits Nobody Can Find
+Build type: Software product
+Money leaves every month for things people forgot they agreed to, and cancelling is deliberately hard.
+The situation
+A person has agreed, over several years, to a set of recurring payments: a subscription, an insurance premium, an application they used twice, a service whose price quietly rose. Each one arrives through a different mechanism with a different cancellation path. Their bank statement shows the debit with a merchant string nobody could interpret. Cancelling requires knowing which mechanism it came through, and most people never find out.
+The problem
+Build a tool that finds every recurring payment a person is committed to, explains what each one is, catches silent price increases, and walks them through the correct way to stop it.
+Why the current answers fail
+* Bank interfaces show mandates in one place if at all, and never show what the merchant actually is
+* Statement descriptors are compressed strings designed for a system, not for a person
+* Cancellation paths differ by mechanism, and the merchant has no incentive to explain the right one
+* A price increase inside an existing mandate is close to invisible, which is precisely why it is done that way
+What we expect you to build
+* Discovery of recurring commitments from statements and payment notifications, including ones that are irregular in amount or in interval
+* Interpretation of merchant strings into something a person recognises
+* Detection of a price increase, a trial converting to a paid plan, and a charge that continues after the service stopped being used
+* The correct cancellation path for each mechanism, with the steps and what to do when the merchant does not respond
+* An annual view of the total, because the number in aggregate is what actually changes behaviour
+Data and stack
+Synthetic statements and notifications that you generate. Do not touch real financial data. Merchant string interpretation can be built from a reference set you assemble by hand, and doing that carefully will beat any model on the cases that matter.
+The layer beneath
+Discovery of the irregular ones. Catching a fixed monthly charge is easy. The valuable finds are the annual renewal charged eleven months after the person forgot, the amount that changes slightly each cycle, and the charge that resumes after a pause. That requires pattern reasoning over a long, noisy statement history and it is where the product earns its keep.
+What the judges will reward
+* Detection rate on irregular and annual commitments planted in your own data
+* Merchant interpretation accuracy against a labelled set
+* A cancellation flow tested end to end on at least one real service
+Where this goes after hackFront
+Consumer subscription, or a partnership with a bank that would rather be seen helping than extracting. The trigger to install is a single number, the annual total, and that number sells the product on its own.
+________________
+
+
+Theme T5   Open Source and Innovation
+The eight themes describe where we think the interesting work is. Open Innovation exists because we know we are not the only ones thinking.
+The rules
+* Build in any domain, on any problem, including a problem sitting inside one of the eight themes that we did not write down
+* You choose the problem, and choosing well is part of what is being judged
+* You are judged against exactly the same standard as every themed submission, on the same weights
+* If your problem sits inside a theme domain and you would rather compete there, you may, but then you are compared against that theme's published problem statements and their criteria
+* Everything else in this document still applies to you, particularly the layer beneath
+The qualifying test
+Four questions. A submission that cannot answer all four is not an Open Innovation entry, it is an idea.
+* Who is the user. Named specifically. Not students, not farmers, not enterprises. A person you can describe in three sentences.
+* What is your evidence that the problem is real. Have you spoken to anyone who has it. Twelve conversations beat a market size slide every time.
+* What did you build. A working prototype, not a presentation of one.
+* Who pays, and why would they. An answer is required. It is allowed to be wrong. It is not allowed to be absent.
+Submission template
+Keep to this order. It is the order the judges read in.
+* The problem in one sentence
+* The user, named and described
+* The evidence, including who you spoke to
+* What exists today and why it is not enough
+* What you built, and a link to it running
+* What was hard about it, meaning your own layer beneath
+* Who pays
+* What you would do with three more months
+Two failures we see every time
+The most common failure in an open track is a beautifully built thing nobody needed. The second most common is an important problem answered with a landing page. Both of them lose to a rough prototype that solves a real problem for a person you can name.
+
+
+________________
+
+
+Theme T6   Automobile and EV
+Deep Tech and Industry sector
+India's electric transition is happening in the second hand market, in three wheelers, in small fleets and in workshops, long before it happens in showrooms. That is where the unsolved problems sit, and it is a market global products were never designed for.
+PS T6.1   Will I Make It
+Build type: Measurement and data
+Tell an Indian driver the truth, with a confidence level attached.
+The situation
+An electric vehicle claims a range. Then the air conditioning goes on, the road climbs, the load increases, the traffic stops and starts, and the number on the dashboard becomes fiction. The driver responds by charging more often than necessary and avoiding trips they could easily have made. Range anxiety is mostly an information failure wearing a battery costume.
+The problem
+Build a routing and energy prediction engine that tells an Indian driver honestly whether they will make it, and plans charging around chargers that actually work.
+Why the current answers fail
+* Manufacturer range figures come from test cycles that do not resemble Indian roads, temperatures or loads
+* Navigation applications optimise for time and treat energy as an afterthought
+* Charger directories list chargers that are broken, occupied, behind a locked gate, or inside a mall that shut down
+* A single number hides all of the risk, and a driver needs the probability of arriving, not a figure pretending to be certain
+What we expect you to build
+* An energy model taking elevation, traffic conditions, ambient temperature, climate load, payload and road roughness as inputs
+* Calibration of that model from a small amount of real or realistically simulated trip telemetry
+* Charger reliability inferred from crowdsourced reports and usage patterns, so a charger with a bad history is treated as the risk it is
+* Route planning that carries a risk budget: give me the route that gets me there with ninety percent confidence, not the one that only just fits
+* An interface that shows the driver what is driving the estimate, so trust can actually be built
+Data and stack
+Open elevation and map data, public charger directories, and your own trip logging if you have access to any vehicle at all, including a two wheeler. Simulation is acceptable provided the model is defended rather than assumed.
+The layer beneath
+Calibration from sparse data. Every vehicle, driver and season is different, and a model that needs a thousand trips before it becomes useful will never be given them. The second layer is stochastic planning, because reasoning about a route under uncertainty is a different problem from finding a shortest path, and treating them as the same is the shortcut that ruins the product.
+What the judges will reward
+* Prediction error measured on trips the model never saw
+* The charger reliability signal, with evidence that it changes decisions
+* Honest handling of uncertainty in the interface instead of false precision
+Where this goes after hackFront
+Fleet operators feel this in rupees every single day and buy quickly when shown a working answer. There is an obvious later route through vehicle manufacturers and charging networks once the model is proven, and fleet data improves the model in a loop that is hard for a newcomer to catch up with.
+PS T6.2   What Actually Happened On That Road
+Build type: Hardware and sensing
+India has a road death problem and almost no data about the moment before impact.
+The situation
+A two wheeler goes down at a junction. There is a police report written afterwards from statements, an insurance claim that becomes an argument, and no record at all of what the vehicle was doing in the ten seconds before. Multiply that by the scale of India's road injuries and the result is a country trying to fix a problem it cannot see, using data assembled from memory and dispute.
+The problem
+Build a low cost event recorder for two wheelers and small commercial vehicles that detects a crash or a near miss, preserves the window around it, and produces a reconstruction that stands up.
+Why the current answers fail
+* Vehicle telematics systems are built for four wheelers and priced for fleets
+* A phone in a pocket records the pocket, not the vehicle
+* Naive threshold detection triggers on every pothole, and a device that cries wolf is switched off within a week
+* Dashboard cameras record video that nobody reviews and that does not survive the crash it recorded
+What we expect you to build
+* A compact recorder with acceleration, rotation and position sensing, on inexpensive hardware, running from vehicle power with its own reserve
+* A rolling buffer that preserves the seconds before and after an event, because the interesting part is always the part before
+* Event classification from signal characteristics: a crash, a fall, a hard brake, a near miss, a pothole, or the device being dropped during installation, distinguished by physics rather than by a model
+* Survivability, so the record still exists after the event that created it
+* A reconstruction output a person can read: speed, movement, orientation and timing through the event
+Data and stack
+Arduino compatible hardware with an inertial measurement unit and a position module, which pairs with our hardware partnership. Generate real events safely: a bicycle, a controlled drop, a test rig. Do not stage a crash. This is signal processing and the classification should be explainable, which rules a model out rather than in.
+The layer beneath
+Telling a crash from a pothole. Both produce a large acceleration spike, and a device that confuses them is worthless. The separation lives in the shape of the signal across all axes over time, in what happens after the spike, and in orientation. Finding that separation with cheap sensors, and proving it on real recorded events rather than on simulated ones, is the whole problem.
+What the judges will reward
+* Classification accuracy on real events you recorded, including the ones designed to fool it
+* The false trigger rate over an hour of ordinary Indian road riding
+* Cost of the unit, because a device only helps if it is affordable enough to be everywhere
+Where this goes after hackFront
+Fleets, delivery platforms and insurers all want this, and usage based insurance has opened a direct commercial path in India. There is also a public safety dataset here that no one currently holds, and datasets like that tend to become the company.
+________________
+
+
+Theme T7   Critical Minerals and Green Energy
+Deep Tech and Industry sector
+The energy transition is a materials problem wearing a technology costume. India now runs a national mission on critical minerals and faces a very concentrated set of suppliers standing between its ambitions and reality. Meanwhile the clean energy already installed on Indian rooftops is quietly underperforming and almost nobody is measuring it.
+PS T7.1   The Rooftop Truth Meter
+Build type: Hardware and sensing
+Not just how much it generated. Why it did not generate more, in rupees.
+The situation
+A rooftop solar plant is installed with a promise. Two years later it generates less and the owner has no way to know whether that is dust, shade from a building that went up next door, a failing module, an inverter problem, or simply a cloudy month. The service company says everything is fine. Nothing is independetly measured, and money leaks quietly for years.
+The problem
+Build a low cost retrofit monitor that separates the causes of underperformance and reports each one with a rupee value attached.
+Why the current answers fail
+* Inverter dashboards report what the inverter did and stay silent on why it was not more
+* Comparing generation with last month is meaningless because the weather changed
+* Diagnosis needs a site visit by a technician, which costs more than most small plants can justify
+* Owners are told to clean the panels regularly, which is advice rather than information
+What we expect you to build
+* A retrofit sensing unit on Arduino compatible hardware: string current and voltage, module temperature, and an irradiance proxy, installable without rewiring the plant
+* An expected yield model built from physics and local weather, so actual generation is always compared against what today should have produced
+* Fault separation, because soiling, shading, module mismatch, inverter clipping and long term degradation each carry a distinguishable signature and your system should name which one it is seeing
+* Output in the owner's language: clean the panels this week and you recover this many rupees a month
+* Calibration that survives cheap sensors, because the sensors will be cheap
+Data and stack
+Arduino for the hardware, which is the confirmed hardware partner platform for this edition. Public weather and irradiance data for the expected yield model. If you cannot access a real plant, one small panel on a terrace is enough to prove the method.
+The layer beneath
+Separating soiling from shading from degradation using only cheap sensors is the entire intellectual content of this problem and it is a genuinely interesting signal problem. Soiling drifts slowly and resets after rain. Shading is periodic and locked to the time of day. Degradation is slow and monotonic. A team that finds those signatures has something real. A team that plots generation on a dashboard has a dashboard.
+What the judges will reward
+* A fault you induce deliberately, correctly identified by the system
+* The rupee statement, defended with a calculation
+* Cost of the unit, because deployability is the product here
+Where this goes after hackFront
+Solar operations and maintenance companies, resident associations and small industrial consumers all pay for this, and the installed base grows every quarter. Hardware plus a subscription is a business shape an incubator understands immediately and can fund.
+PS T7.2   Sorting The Scrap
+Build type: Hardware and sensing
+Recovery starts with separation, and separation in India is done by hand and by eye.
+The situation
+Recovering critical minerals begins with getting materials apart. In India that work is done by hand, by people who are extremely good at it, judging by appearance and weight. Value is lost when categories are mixed, when a valuable component is treated as bulk scrap, and when a battery of the wrong chemistry enters the wrong process, which is also how fires start.
+The problem
+Build a low cost sorting aid for one specific waste stream, using cheap physical sensing rather than expensive laboratory instruments.
+Why the current answers fail
+* Spectroscopic sorting equipment costs more than a small recycler's entire annual capital budget
+* Visual identification fails on the cases that matter, particularly battery chemistry, which looks identical and behaves very differently
+* Mixed output is worth a fraction of separated output, so the loss is continuous rather than occasional
+* Extended producer responsibility obligations demand documented recovery, and hand sorting documents nothing
+What we expect you to build
+* A bench using cheap physical signals: mass, magnetic response, electrical conductivity, density in a fluid, dimensional measurement, and colour under controlled light
+* A classification rule set for one chosen stream, built from measurements rather than from appearance
+* An honest accuracy measurement against a reference classification you establish independently
+* A workflow a sorter can follow at speed, because a bench that slows the line will be abandoned whatever its accuracy
+* Documentation output suitable for a recovery record
+Data and stack
+Arduino compatible hardware and inexpensive sensors, which pairs with our hardware partnership. Choose one stream and go deep: electronic waste boards, small format batteries by chemistry, or magnet bearing components. Physics and measurement, not machine learning.
+The layer beneath
+How far cheap signals can take you. The real question this problem statement asks is how much of an expensive instrument's job can be done by several inexpensive measurements combined intelligently, and the honest answer will be a percentage rather than a claim. Measuring that percentage properly, and knowing which items your bench must refuse to judge, is the contribution.
+What the judges will reward
+* Accuracy against an independent reference, on real material
+* Items per minute, because throughput is the business
+* A clear statement of what your bench cannot classify and hands to a human
+Where this goes after hackFront
+Recyclers operating under extended producer responsibility need documented recovery and better yield at the same time, and the equipment market between hand sorting and industrial instruments is empty. That gap is the opportunity.
+
+
+________________
+
+
+Theme T8   Space and Defence Tech
+Deep Tech and Industry sector
+The satellites are already overhead and much of what they see is free to download. The hard part was never the sensor. It is turning a continuous stream of pixels into something a district officer can act on this week. And on the ground, the signal we quietly built everything on top of turns out to be one of the easiest things in the world to lie about.
+PS T8.1   The Change Sentinel
+Build type: Applied AI
+Watch a district from orbit and produce case files, not curiosities.
+The situation
+An illegal quarry expands. A water body is filled in for construction. A protected area loses trees along its edge. Each of these is visible from space, in imagery that is free to anyone, and none of it is noticed until somebody complains, usually years later.
+The problem
+Build a pipeline that watches an area over time using open satellite imagery, detects meaningful unauthorised change, and turns each detection into a case file with the evidence attached.
+Why the current answers fail
+* Manual image comparison does not scale past a small area and nobody is doing it continuously
+* Naive change detection produces thousands of false alarms from clouds, shadows, seasons and harvest cycles
+* Commercial monitoring is priced for corporate customers rather than for a district office or a citizen group
+* A detection with no jurisdiction, no area estimate and no before and after view is not actionable, it is a curiosity
+What we expect you to build
+* A pipeline over free imagery such as the Sentinel programme or Indian public sources, for one chosen district
+* Cloud and shadow handling, and seasonal normalisation, so agriculture and monsoon do not drown the signal you care about
+* Detection of one specific change class that you choose and argue for, rather than a generic attempt at everything
+* Case file output: before and after tiles, area estimate, confidence, date range, and the administrative jurisdiction it falls inside
+* Prioritisation, so that the top of the list is worth an officer's attention on a Monday morning
+Data and stack
+Free satellite imagery and open administrative boundary data. Compute discipline is part of the problem, because a solution that needs a large cluster is a solution nobody will ever run.
+The layer beneath
+False positives. The gap between a change detector that works on one demonstration pair and one that works across two years of imagery over a whole district is almost entirely the suppression of things that changed but do not matter. Every honest team on this problem will spend most of its time there, and we would far rather see that than a wider claim with a thinner floor under it.
+What the judges will reward
+* A validated detection against something you can independently confirm
+* False positive rate over a real time period, stated plainly
+* Compute cost per district per month
+Where this goes after hackFront
+State governments, mining and forest departments, insurers and environmental groups all carry this need. Specialising in one change class in one state is a perfectly good beginning, and the imagery keeps arriving for free while you build the rest.
+PS T8.2   The First Map After The Landslide
+Build type: Measurement and data
+Responders need a current map in three hours. The satellite pass is on Thursday.
+The situation
+A landslide closes a valley. A flood rearranges a district. The response team needs to know which roads exist, where the damage is, and where people are cut off. The available satellite pass is days away and may be under cloud. Somebody has a consumer drone. What they do not have is a way to turn an hour of flying into a usable map on a laptop, in the field, with no internet and unreliable power.
+The problem
+Build a rapid mapping workflow that turns consumer drone footage into a georeferenced current map and a change report, entirely offline, on a laptop, in hours.
+Why the current answers fail
+* Photogrammetry software is cloud based, slow, or both, and the field has neither bandwidth nor patience
+* Accurate georeferencing normally expects ground control points that nobody is placing during a disaster
+* Satellite tasking is too slow for the first day and cloud cover often removes the option entirely
+* Video of the damage is not a map, and responders cannot plan from footage
+What we expect you to build
+* A capture protocol simple enough for a stressed pilot to follow correctly the first time
+* Stitching and georeferencing without ground control points, with the resulting positional error stated honestly
+* Comparison against the last known state from open imagery, producing what changed and where access is blocked
+* Complete offline operation on a laptop, with a stated processing time for a stated area
+* Output in formats the responding agencies already use, because a proprietary map is a map nobody opens
+Data and stack
+Open photogrammetry tooling, open base imagery, and footage you capture yourself over any terrain, flying only where permitted. Geometry and image processing. Note that this problem statement is deliberately distinct from PS T8.1, which watches slowly from orbit; this one is fast, low, and offline.
+The layer beneath
+Accuracy without ground control. Positional error accumulates across a stitched survey and, in a disaster response, being confidently wrong about where a blocked road is has consequences. Bounding and reporting that error honestly, rather than producing a beautiful map with unknown accuracy, is the professional difference and it is what we will look for.
+What the judges will reward
+* Positional error measured against known reference points
+* Processing time for a stated area on a normal laptop
+* Output a response agency could actually open and use
+Where this goes after hackFront
+Disaster management authorities, infrastructure owners, insurers and mining operations all need current maps quickly. This starts as a service delivered by a small team with a drone and becomes a product once the workflow is reliable, which is a sensible order for a hardware adjacent business.
